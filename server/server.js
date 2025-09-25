@@ -6,16 +6,15 @@ const cors = require('cors');
 const app = express();
 
 // CORS configuration for production
+
 const corsOptions = {
-  origin: [
-    'http://localhost:5173', // Local development
-    'http://localhost:3000', // Alternative local port
-    // Add your Render frontend URL here after deployment
-    // 'https://your-frontend-app.onrender.com'
-  ],
-  credentials: true,
-  optionsSuccessStatus: 200
+  origin: 'https://ead-assignment2frontend.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // if you use cookies/auth headers
 };
+
+
 
 app.use(cors(corsOptions));
 app.use(express.json());
