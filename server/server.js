@@ -5,25 +5,28 @@ const cors = require('cors');
 
 const app = express();
 
-// CORS configuration for production
-
+// CORS configuration for production and development
 const corsOptions = {
-  origin: 'https://ead-assignment2frontend.onrender.com',
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.CLIENT_URL || 'https://ead-assignment2frontend.onrender.com'
+    : ['http://localhost:5173', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // if you use cookies/auth headers
+  credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
-
-
 
 app.use(cors(corsOptions));
 app.use(express.json());
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://admin:admin@cluster0.2vwfky1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
-  .catch(err => console.error('❌ DB connection error:', err));
+  .catch(err => {
+    console.error('❌ DB connection error:', err);
+    process.exit(1);
+  });
 
 // Health check endpoint
 app.get('/', (req, res) => {
@@ -127,6 +130,21 @@ app.get('/students', async (req, res) => {
   }
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// Handle 404 - must be the last route
+app.use((req, res) => {
+  res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
+});
+
 // Start server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 CORS origin: ${corsOptions.origin}`);
+});

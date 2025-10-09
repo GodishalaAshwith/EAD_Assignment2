@@ -44,6 +44,8 @@ const App = () => {
     setIsLoading(true);
 
     try {
+      console.log('Submitting to:', `${API}/students`);
+      
       const response = await fetch(`${API}/students`, {
         method: 'POST',
         headers: {
@@ -52,13 +54,14 @@ const App = () => {
         body: JSON.stringify(form)
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to register student');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status} ${response.statusText}`);
       }
 
+      const data = await response.json();
       setMessage('✅ Student registered successfully!');
+      
       // Reset form after successful submission
       setForm({
         name: '',
@@ -71,7 +74,13 @@ const App = () => {
 
     } catch (error) {
       console.error('Registration error:', error);
-      setMessage(`❌ Error: ${error.message}`);
+      
+      // Provide more specific error messages
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        setMessage(`❌ Network Error: Cannot connect to server at ${API}. Please check if the server is running.`);
+      } else {
+        setMessage(`❌ Error: ${error.message}`);
+      }
     } finally {
       setIsLoading(false);
     }

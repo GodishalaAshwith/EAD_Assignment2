@@ -1,0 +1,58 @@
+# Render Deployment Configuration
+
+## Service Configuration
+
+### Backend (Web Service)
+```yaml
+name: student-registration-api
+type: web
+env: node
+region: oregon
+plan: free
+buildCommand: npm install
+startCommand: npm start
+rootDir: server
+
+# Environment Variables
+envVars:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: 4000
+  - key: MONGODB_URI
+    value: <your-mongodb-connection-string>
+  - key: CLIENT_URL
+    value: <your-frontend-url>
+```
+
+### Frontend (Static Site)
+```yaml
+name: student-registration-frontend  
+type: static
+env: static
+region: oregon
+plan: free
+buildCommand: npm run build
+publishDir: dist
+rootDir: client
+
+# Environment Variables
+envVars:
+  - key: VITE_API_URL
+    value: <your-backend-url>
+```
+
+## Auto-Deploy Configuration
+- Branch: main
+- Auto-deploy: enabled
+- Pull request previews: enabled
+
+## Health Check Endpoints
+- Backend: `GET /` - Returns server status
+- Frontend: Static site health automatically monitored
+
+## Notes
+- Free tier services sleep after 15 minutes of inactivity
+- First request after sleep may take 30+ seconds
+- MongoDB Atlas connection required (free tier available)
+- Ensure CORS is properly configured with production URLs
